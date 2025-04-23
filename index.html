@@ -389,13 +389,18 @@
 
         function loadMenu() {
             fetch(APPS_SCRIPT_URL + '?action=getMenu')
-                .then(response => response.json())
-                .then(data => {
-                    menuData = data;
-                    renderMenu();
+                .then(response => response.text())
+                .then(text => {
+                    try {
+                        menuData = JSON.parse(text);
+                        renderMenu();
+                    } catch (e) {
+                        console.error('Errore parsing menu:', e);
+                        alert('Errore nel caricamento del menu. Riprova più tardi.');
+                    }
                 })
                 .catch(error => {
-                    console.error('Error loading menu:', error);
+                    console.error('Errore caricamento menu:', error);
                     alert('Errore nel caricamento del menu. Riprova più tardi.');
                 });
         }
