@@ -348,8 +348,80 @@
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyO1NaGTeKNlcMOsNJcjlFtCvongxCdY54f0wNf-ItrxOTyUCo-y2lLdxPJEZ0zsijXIA/exec';
         let deferredPrompt;
         let cart = [];
-        let menuData = { foods: [], drinks: [] };
+        let menuData = null;
 
+        // Load menu on page load
+        window.addEventListener('load', loadMenu);
+
+        function loadMenu() {
+            var script = document.createElement('script');
+            script.src = APPS_SCRIPT_URL + '?action=getMenu&callback=handleMenu';
+            document.body.appendChild(script);
+        }
+
+        function handleMenu(data) {
+            try {
+                menuData = data;
+                renderMenu();
+            } catch (e) {
+                console.error('Errore parsing menu:', e);
+                alert('Errore nel caricamento del menu. Riprova più tardi.');
+            }
+        }
+
+        function renderMenu() {
+            if (!menuData || !menuData.foods || !menuData.drinks) {
+                console.error('Menu data non valido:', menuData);
+                return;
+            }
+
+            const foodContainer = document.getElementById('specialita');
+            const drinkContainer = document.getElementById('bevande');
+
+            // Clear containers
+            foodContainer.innerHTML = '';
+            drinkContainer.innerHTML = '';
+
+            // Render foods
+            menuData.foods.forEach(food => {
+                const item = {
+                    id: food[0],
+                    name: food[1],
+                    price: parseFloat(food[2]),
+                    description: food[3],
+                    glutenFree: food[4] === 'true' || food[4] === true
+                };
+                const element = createMenuItem(item, 'food');
+                foodContainer.appendChild(element);
+            });
+
+            // Render drinks
+            menuData.drinks.forEach(drink => {
+                const item = {
+                    id: drink[0],
+                    name: drink[1],
+                    price: parseFloat(drink[2])
+                };
+                const element = createMenuItem(item, 'drink');
+                drinkContainer.appendChild(element);
+            });
+        }
+
+        function createMenuItem(item, type) {
+            const div = document.createElement('div');
+            div.className = 'menu-item';
+            div.innerHTML = `
+                <h3>${item.name}</h3>
+                ${item.description ? `<p>${item.description}</p>` : ''}
+                <div class="price">€${item.price.toFixed(2)}</div>
+                <div class="quantity-control">
+                    <button class="quantity-btn" onclick="updateQuantity('${type}', ${item.id}, -1)">-</button>
+                    <span id="${type}-${item.id}-quantity">0</span>
+                    <button class="quantity-btn" onclick="updateQuantity('${type}', ${item.id}, 1)">+</button>
+                </div>
+            `;
+            return div;
+        }
         // Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -404,23 +476,81 @@
         }
 
         function renderMenu() {
-            const foodMenu = document.getElementById('food-menu');
-            const drinkMenu = document.getElementById('drink-menu');
+            if (!menuData) return;
 
-            foodMenu.innerHTML = menuData.foods.map(item => createMenuItemHTML(item, 'food')).join('');
-            drinkMenu.innerHTML = menuData.drinks.map(item => createMenuItemHTML(item, 'drink')).join('');
+            // Render food items
+            const foodContainer = document.getElementById('specialita');
+            foodContainer.innerHTML = '';
+            menuData.foods.forEach(food => {
+                const foodItem = createMenuItem({
+                    id: food[0],
+                    name: food[1],
+                    price: food[2],
+                    description: food[3],
+                    glutenFree: food[4] === 'true' || food[4] === true
+                });
+                foodContainer.appendChild(foodItem);
+            });
+
+            // Render drink items
+            const drinkContainer = document.getElementById('bevande');
+            drinkContainer.innerHTML = '';
+            menuData.drinks.forEach(drink => {
+                const drinkItem = createMenuItem({
+                    id: drink[0],
+                    name: drink[1],
+                    price: drink[2]
+                });
+                drinkContainer.appendChild(drinkItem);
+            });
         }
 
-        function createMenuItemHTML(item, type) {
-            return `
-                <div class="menu-item">
-                    <h3>${item.name}</h3>
-                    <p>${item.description || ''}</p>
-                    <div class="price">€${item.price.toFixed(2)}</div>
-                    <div class="quantity-control">
-                        <button class="quantity-btn" onclick="updateQuantity('${type}', ${item.id}, -1)">-</button>
-                        <span id="${type}-${item.id}-quantity">0</span>
-                        <button class="quantity-btn" onclick="updateQuantity('${type}', ${item.id}, 1)">+</button>
+        function createMenuItem(item) {
+            const menuItem = document.createElement('div');
+            menuItem.className = 'menu-item';
+
+            const name = document.createElement('h3');
+            name.textContent = item.name;
+            menuItem.appendChild(name);
+
+            if (item.description) {
+                const description = document.createElement('p');
+                description.textContent = item.description;
+                menuItem.appendChild(description);
+            }
+
+            const price = document.createElement('div');
+            price.className = 'price';
+            price.textContent = `€${item.price.toFixed(2)}`;
+            menuItem.appendChild(price);
+
+            const quantityControl = document.createElement('div');
+            quantityControl.className = 'quantity-control';
+
+            const minusButton = document.createElement('button');
+            minusButton.className = 'quantity-btn';
+            minusButton.textContent = '-';
+            minusButton.onclick = function() {
+                updateQuantity('food', item.id, -1);
+            };
+            quantityControl.appendChild(minusButton);
+
+            const quantitySpan = document.createElement('span');
+            quantitySpan.id = `food-${item.id}-quantity`;
+            quantitySpan.textContent = '0';
+            quantityControl.appendChild(quantitySpan);
+
+            const plusButton = document.createElement('button');
+            plusButton.className = 'quantity-btn';
+            plusButton.textContent = '+';
+            plusButton.onclick = function() {
+                updateQuantity('food', item.id, 1);
+            };
+            quantityControl.appendChild(plusButton);
+
+            menuItem.appendChild(quantityControl);
+
+            return menuItem;
                     </div>
                 </div>
             `;
