@@ -388,21 +388,19 @@
         });
 
         function loadMenu() {
-            fetch(APPS_SCRIPT_URL + '?action=getMenu')
-                .then(response => response.text())
-                .then(text => {
-                    try {
-                        menuData = JSON.parse(text);
-                        renderMenu();
-                    } catch (e) {
-                        console.error('Errore parsing menu:', e);
-                        alert('Errore nel caricamento del menu. Riprova più tardi.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Errore caricamento menu:', error);
-                    alert('Errore nel caricamento del menu. Riprova più tardi.');
-                });
+            var script = document.createElement('script');
+            script.src = APPS_SCRIPT_URL + '?action=getMenu&callback=handleMenu';
+            document.body.appendChild(script);
+        }
+
+        function handleMenu(data) {
+            try {
+                menuData = data;
+                renderMenu();
+            } catch (e) {
+                console.error('Errore parsing menu:', e);
+                alert('Errore nel caricamento del menu. Riprova più tardi.');
+            }
         }
 
         function renderMenu() {
