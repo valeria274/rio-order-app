@@ -1,11 +1,11 @@
 const CACHE_NAME = 'rio-churrascaria-v1';
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/manifest.json',
-    '/images/logo.png',
-    '/icons/icon-192x192.png',
-    '/icons/icon-512x512.png',
+    './',
+    './index.html',
+    './manifest.json',
+    './images/logo.png',
+    './icons/icon-192x192.png',
+    './icons/icon-512x512.png',
     'https://fonts.googleapis.com/icon?family=Material+Icons'
 ];
 
