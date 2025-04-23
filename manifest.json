@@ -1,0 +1,23 @@
+{
+    "name": "Rio Churrascaria Ordini",
+    "short_name": "Rio Ordini",
+    "description": "Ordina online da Rio Churrascaria - Ristorante Brasiliano",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FFFFFF",
+    "theme_color": "#4CAF50",
+    "icons": [
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
